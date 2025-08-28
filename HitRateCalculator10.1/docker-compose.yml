@@ -5,30 +5,54 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  calculation:
+    build:
+      context: .
+      dockerfile: Dockerfile.calculation
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    volumes:
+      - ./data:/app/data
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
 
   orchestrator:
     build:
       context: .
-      dockerfile: docker/Dockerfile.orchestrator
+      dockerfile: orchestrator
     ports:
       - "5001:8080"
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
 
   gateway:
     build:
       context: .
-      dockerfile: docker/Dockerfile.gateway
+      dockerfile: gateway
     ports:
       - "5000:8080"
     depends_on:
       - orchestrator
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
 
   ui:
     build:
       context: .
-      dockerfile: docker/Dockerfile.ui
+      dockerfile: ui
     ports:
       - "3000:80"
     depends_on:
       - gateway
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf

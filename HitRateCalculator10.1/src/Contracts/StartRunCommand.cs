@@ -1,11 +1,13 @@
-
 using System;
 
 namespace Contracts
 {
-    public class StartRunCommand
+    public record StartRunCommand
     {
-        public string DatasetPath { get; set; }
-        public Guid RunId { get; set; }
+        public string DatasetPath { get; init; } = string.Empty;
+        public Guid RunId { get; init; }
+        public int MaxOrdersPerStation { get; init; } = 4;
+        public int NumberOfStations { get; init; } = 4;
+        public int MaxSkusPerRack { get; init; } = 50;
     }
 }
